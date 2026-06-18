@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from diary.diary_model import DiaryEntry
 
 app = FastAPI()
 
@@ -13,4 +14,11 @@ def health():
         "components": {
             "api": "online"
         }
+    }
+
+@app.post("/diary")
+def create_diary_entry(entry: DiaryEntry):
+    return {
+        "message": "Diary entry received",
+        "entry": entry
     }
