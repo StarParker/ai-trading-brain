@@ -26,3 +26,8 @@ def create_diary_entry(entry: DiaryEntry):
     entries.append(entry.model_dump())
     save_entries(entries)
     return {"message": "Diary entry saved!"}
+
+
+@app.get("/diary")
+def get_diary_entries():
+    return load_entries()
