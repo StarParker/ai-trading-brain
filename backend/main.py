@@ -31,3 +31,5 @@ def create_diary_entry(entry: DiaryEntry):
 @app.get("/diary")
 def get_diary_entries():
     return load_entries()
+
+
