@@ -19,7 +19,7 @@ def health():
 
 @app.post("/diary")
 def create_diary_entry(entry: DiaryEntry):
-    return {
-        "message": "Diary entry received",
-        "entry": entry
-    }
+    entries = load_entries()
+    entries.append(entry.model_dump())
+    save_entries(entries)
+    return {"message": "Diary entry saved!"}
