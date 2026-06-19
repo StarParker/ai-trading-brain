@@ -1,3 +1,13 @@
 [
     {
-        "date": 
+        "date": "2026-06-19T00:07:44.020000+00:00",
+        "htf_bias": "string",
+        "key_levels": [
+            "string"
+        ],
+        "scenarios": [
+            "string"
+        ],
+        "notess": "string"
+    }
+]
