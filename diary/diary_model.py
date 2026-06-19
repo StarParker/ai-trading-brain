@@ -22,6 +22,6 @@ def load_entries():
         return []
 
 
-def save_entry(entries):
+def save_entries(entries):
     with open(STORAGE_PATH, "w") as f:
         json.dump(entries, f, indent=4)

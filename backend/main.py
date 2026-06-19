@@ -1,5 +1,6 @@
+# import lines
 from fastapi import FastAPI
-from diary.diary_model import DiaryEntry
+from diary.diary_model import DiaryEntry, load_entries, save_entries
 
 app = FastAPI()
 
