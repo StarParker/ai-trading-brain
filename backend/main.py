@@ -1,6 +1,8 @@
 # import lines
 from fastapi import FastAPI
 from diary.diary_model import DiaryEntry, load_entries, save_entries
+from signals.signal_model import Signal, load_signals, save_signals
+
 
 app = FastAPI()
 
@@ -33,3 +35,13 @@ def get_diary_entries():
     return load_entries()
 
 
+@app.post("/signals")
+def create_signal(signal: Signal):
+    signals = load_signals()
+    signals.append(signal.model_dump())
+    save.signals(signals)
+    return {"message": "Signal saved"}
+
+@app.get("/signals")
+def get_signals():
+    return load_signals()
