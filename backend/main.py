@@ -34,13 +34,18 @@ def create_diary_entry(entry: DiaryEntry):
 def get_diary_entries():
     return load_entries()
 
+# -----------------------------------
+# Signal Engine Endpoints
+# -----------------------------------
+
 
 @app.post("/signals")
 def create_signal(signal: Signal):
     signals = load_signals()
     signals.append(signal.model_dump())
-    save.signals(signals)
+    save_signals(signals)
     return {"message": "Signal saved"}
+
 
 @app.get("/signals")
 def get_signals():

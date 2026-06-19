@@ -35,6 +35,6 @@ def save_entries(entries):
         if isinstance(entry_copy.get('date'), datetime):
             entry_copy['date'] = entry_copy['date'].isoformat()
         entries_to_save.append(entry_copy)
-    
+
     with open(STORAGE_PATH, "w") as f:
         json.dump(entries_to_save, f, indent=4)
