@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pathlib import Path
 import json
@@ -14,6 +14,9 @@ app = FastAPI()
 STORAGE_PATH = Path("signals/signal_storage.json")
 TAPE_PATH = Path("tape_reader/tape_storage.json")
 
+# ---------------------------
+# Root + Health
+# ---------------------------
 
 @app.get("/")
 def root():
@@ -29,6 +32,9 @@ def health():
         }
     }
 
+# ---------------------------
+# Diary Endpoints
+# ---------------------------
 
 @app.post("/diary")
 def create_diary_entry(entry: DiaryEntry):
@@ -42,6 +48,9 @@ def create_diary_entry(entry: DiaryEntry):
 def get_diary_entries():
     return load_entries()
 
+# ---------------------------
+# Signals Endpoints
+# ---------------------------
 
 @app.post("/signals")
 def create_signal(signal: Signal):
@@ -86,11 +95,11 @@ def get_latest_signal():
 def filter_signals_(signal_type: str):
     raw = STORAGE_PATH.read_text().strip()
     data = json.loads(raw) if raw else []
-    return [s for s in data if s["signal type"] == signal_type]
+    return [s for s in data if s.get("signal type") == signal_type]
 
-
-TAPE_PATH = Path("tape_reader/tape_storage.json")
-
+# ---------------------------
+# Tape Logic
+# ---------------------------
 
 def compute_delta(bid_volume: int, ask_volume: int) -> int:
     return ask_volume - bid_volume
@@ -102,9 +111,33 @@ def compute_imbalance(bid_volume: int, ask_volume: int) -> float:
         return 0.0
     return (ask_volume - bid_volume) / total
 
+# ---------------------------
+# WebSocket Tape Streaming
+# ---------------------------
+
+active_tape_connections: list[WebSocket] = []
+
+
+@app.websocket("/ws/tape")
+async def tape_websocket(websocket: WebSocket):
+    await websocket.accept()
+    active_tape_connections.append(websocket)
+
+    try:
+        # Keep the connection alive; we don't expect messages from client,
+        # but receive_text() prevents the loop from exiting immediately.
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        if websocket in active_tape_connections:
+            active_tape_connections.remove(websocket)
+
+# ---------------------------
+# Tape Endpoints
+# ---------------------------
 
 @app.post("/tape")
-def add_tape_event(event: TapeEvent):
+async def add_tape_event(event: TapeEvent):
     delta = compute_delta(event.bid_volume, event.ask_volume)
     imbalance = compute_imbalance(event.bid_volume, event.ask_volume)
 
@@ -118,6 +151,15 @@ def add_tape_event(event: TapeEvent):
 
     TAPE_PATH.write_text(json.dumps(data, indent=2))
 
+    # Broadcast to all connected WebSocket clients
+    for conn in list(active_tape_connections):
+        try:
+            await conn.send_json(enriched)
+        except Exception:
+            # Drop dead/broken connections silently
+            if conn in active_tape_connections:
+                active_tape_connections.remove(conn)
+
     return {"status": "ok", "stored": enriched}
 
 
@@ -129,3 +171,17 @@ def get_tape_events():
     if not raw:
         return []
     return json.loads(raw)
+
+
+@app.get("/tape/latest")
+def get_latest_tape_event():
+    if not TAPE_PATH.exists():
+        return {}
+    raw = TAPE_PATH.read_text().strip()
+    if not raw:
+        return {}
+    data = json.loads(raw)
+    if not data:
+        return {}
+    return data[-1]
+

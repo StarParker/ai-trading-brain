@@ -7,5 +7,95 @@
     "delta": 10,
     "imbalance": 0.058823529411764705,
     "notes": "test event"
+  },
+  {
+    "timestamp": "2026-06-20T20:00:00",
+    "price": 5330.0,
+    "bid_volume": 110,
+    "ask_volume": 90,
+    "delta": -20,
+    "imbalance": -0.1,
+    "notes": "test"
+  },
+  {
+    "timestamp": "2026-06-20T20:00:00",
+    "price": 5330.0,
+    "bid_volume": 110,
+    "ask_volume": 90,
+    "delta": -20,
+    "imbalance": -0.1,
+    "notes": "test"
+  },
+  {
+    "timestamp": "2026-06-20T20:00:00",
+    "price": 5330.0,
+    "bid_volume": 110,
+    "ask_volume": 90,
+    "delta": -20,
+    "imbalance": -0.1,
+    "notes": "test"
+  },
+  {
+    "timestamp": "2026-05-20T10:00:00",
+    "price": 5550.0,
+    "bid_volume": 50,
+    "ask_volume": 40,
+    "delta": -10,
+    "imbalance": -0.1111111111111111,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2026-05-20T10:00:00",
+    "price": 5550.0,
+    "bid_volume": 50,
+    "ask_volume": 40,
+    "delta": -10,
+    "imbalance": -0.1111111111111111,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2026-06-20T20:32:03.098000Z",
+    "price": 5430.0,
+    "bid_volume": 70,
+    "ask_volume": 60,
+    "delta": -10,
+    "imbalance": -0.07692307692307693,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2026-06-20T20:37:08.380000Z",
+    "price": 5430.0,
+    "bid_volume": 80,
+    "ask_volume": 50,
+    "delta": -30,
+    "imbalance": -0.23076923076923078,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2026-06-20T20:37:08.380000Z",
+    "price": 5430.0,
+    "bid_volume": 80,
+    "ask_volume": 50,
+    "delta": -30,
+    "imbalance": -0.23076923076923078,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2026-06-20T20:41:36.175000Z",
+    "price": 3450.0,
+    "bid_volume": 90,
+    "ask_volume": 30,
+    "delta": -60,
+    "imbalance": -0.5,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2026-06-20T20:41:36.175000Z",
+    "price": 3450.0,
+    "bid_volume": 90,
+    "ask_volume": 30,
+    "delta": -60,
+    "imbalance": -0.5,
+    "notes": "string"
   }
 ]

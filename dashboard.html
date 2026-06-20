@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Trading System — Real-Time Dashboard</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0b0c10;
+      color: #c5c6c7;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #66fcf1;
+      margin-bottom: 10px;
+    }
+    h2 {
+      color: #45a29e;
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1f2833;
+      color: #c5c6c7;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #45a29e;
+      padding: 4px 6px;
+      text-align: right;
+    }
+    th {
+      background: #0b0c10;
+      color: #66fcf1;
+    }
+    pre {
+      background: #1f2833;
+      padding: 10px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .panel {
+      background: #1f2833;
+      padding: 10px;
+      border: 1px solid #45a29e;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Trading System — Real-Time Dashboard</h1>
+
+  <div class="grid">
+    <div>
+      <h2>Real-Time Tape Stream</h2>
+      <div class="panel">
+        <table id="tape-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Price</th>
+              <th>Bid Vol</th>
+              <th>Ask Vol</th>
+              <th>Delta</th>
+              <th>Imbalance</th>
+            </tr>
+          </thead>
+          <tbody id="tape-body">
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Latest Tape Event</h2>
+      <div class="panel">
+        <pre id="latest-tape">Waiting for tape events...</pre>
+      </div>
+    </div>
+
+    <div>
+      <h2>Latest Signal</h2>
+      <div class="panel">
+        <pre id="latest-signal">Loading...</pre>
+      </div>
+
+      <h2>All Signals</h2>
+      <div class="panel">
+        <pre id="all-signals">Loading...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    const WS_URL   = "ws://127.0.0.1:8000/ws/tape";
+
+    const tapeBody      = document.getElementById("tape-body");
+    const latestTapePre = document.getElementById("latest-tape");
+    const latestSignalPre = document.getElementById("latest-signal");
+    const allSignalsPre   = document.getElementById("all-signals");
+
+    // ---- REST: Signals ----
+    async function loadSignals() {
+      try {
+        const latestRes = await fetch(`${API_BASE}/signals/latest`);
+        const latest = await latestRes.json();
+        latestSignalPre.textContent = JSON.stringify(latest, null, 2);
+
+        const allRes = await fetch(`${API_BASE}/signals`);
+        const all = await allRes.json();
+        allSignalsPre.textContent = JSON.stringify(all, null, 2);
+      } catch (err) {
+        latestSignalPre.textContent = "Error loading signals";
+        allSignalsPre.textContent = "Error loading signals";
+        console.error(err);
+      }
+    }
+
+    // ---- WebSocket: Tape ----
+    function connectTapeWebSocket() {
+      const ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        console.log("Tape WebSocket connected");
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        // Update latest tape
+        latestTapePre.textContent = JSON.stringify(data, null, 2);
+
+        // Append row to table (keep last 50)
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${data.timestamp ?? ""}</td>
+          <td>${data.price ?? ""}</td>
+          <td>${data.bid_volume ?? ""}</td>
+          <td>${data.ask_volume ?? ""}</td>
+          <td>${data.delta ?? ""}</td>
+          <td>${data.imbalance ?? ""}</td>
+        `;
+        tapeBody.appendChild(row);
+
+        while (tapeBody.rows.length > 50) {
+          tapeBody.deleteRow(0);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log("Tape WebSocket closed, reconnecting in 2s...");
+        setTimeout(connectTapeWebSocket, 2000);
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket error:", err);
+      };
+    }
+
+    // ---- Init ----
+    loadSignals();
+    connectTapeWebSocket();
+  </script>
+</body>
+</html>
