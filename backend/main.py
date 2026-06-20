@@ -1,7 +1,8 @@
 # import lines
 from fastapi import FastAPI
 from diary.diary_model import DiaryEntry, load_entries, save_entries
-from signals.signal_model import Signal, load_signals, save_signals
+from signals.signal_model import Signal, STORAGE_PATH
+import json
 
 
 app = FastAPI()
@@ -34,19 +35,21 @@ def create_diary_entry(entry: DiaryEntry):
 def get_diary_entries():
     return load_entries()
 
-# -----------------------------------
-# Signal Engine Endpoints
-# -----------------------------------
-
 
 @app.post("/signals")
 def create_signal(signal: Signal):
-    signals = load_signals()
-    signals.append(signal.model_dump())
-    save_signals(signals)
-    return {"message": "Signal saved"}
+    try:
+        if STORAGE_PATH.exists():
+            raw = STORAGE_PATH.read_text().strip()
+            data = json.loads(raw) if raw else []
+        else:
+            data = []
+    except Exception:
+        # Reset corrupted file
+        data = []
+        STORAGE_PATH.write_text("[]")
 
+    data.append(signal.model_dump(mode="json"))
+    STORAGE_PATH.write_text(json.dumps(data, indent=4))
 
-@app.get("/signals")
-def get_signals():
-    return load_signals()
+    return {"status": "ok", "stored": signal.model_dump(mode="json")}

@@ -1,1 +1,19 @@
-[]
+[
+    {
+        "timestamp": "2026-06-19T09:47:00",
+        "signal_type": "Liquidity Sweep",
+        "category": "Reversal",
+        "strength": 4,
+        "playbook_tag": "Sweep -> Shift -> Go",
+        "htf_bias": "Bullish",
+        "ltf_context": "Range Low",
+        "trigger": "Break above 5332.50 with delta shift",
+        "invalidation": "Close below 5328.00",
+        "metadata": {
+            "level_swept": 5330.25,
+            "delta_shift": "positive",
+            "vwap_relation": "below",
+            "session": "RTH"
+        }
+    }
+]
