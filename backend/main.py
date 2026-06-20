@@ -1,13 +1,18 @@
-# import lines
-from fastapi import FastAPI
-from diary.diary_model import DiaryEntry, load_entries, save_entries
-from signals.signal_model import Signal, STORAGE_PATH
-from tape_reader.tape_model import TapeEvent
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from pathlib import Path
 import json
 
+from signals.signal_model import Signal
+from tape_reader.tape_model import TapeEvent
+from diary.diary_model import DiaryEntry
+from diary.diary_storage import load_entries, save_entries
+
 
 app = FastAPI()
+
+STORAGE_PATH = Path("signals/signal_storage.json")
+TAPE_PATH = Path("tape_reader/tape_storage.json")
 
 
 @app.get("/")
@@ -84,12 +89,36 @@ def filter_signals_(signal_type: str):
     return [s for s in data if s["signal type"] == signal_type]
 
 
+TAPE_PATH = Path("tape_reader/tape_storage.json")
+
+
+def compute_delta(bid_volume: int, ask_volume: int) -> int:
+    return ask_volume - bid_volume
+
+
+def compute_imbalance(bid_volume: int, ask_volume: int) -> float:
+    total = bid_volume + ask_volume
+    if total == 0:
+        return 0.0
+    return (ask_volume - bid_volume) / total
+
+
 @app.post("/tape")
 def add_tape_event(event: TapeEvent):
+    delta = compute_delta(event.bid_volume, event.ask_volume)
+    imbalance = compute_imbalance(event.bid_volume, event.ask_volume)
+
+    enriched = event.model_dump(mode="json")
+    enriched["delta"] = delta
+    enriched["imbalance"] = imbalance
+
     raw = TAPE_PATH.read_text().strip() if TAPE_PATH.exists() else "[]"
     data = json.loads(raw)
-    data.append(event.dict())
-    TAPE_PATH.write_text(json,.dumps(data, indent=2))return {"status": "ok", "stored": event}
+    data.append(enriched)
+
+    TAPE_PATH.write_text(json.dumps(data, indent=2))
+
+    return {"status": "ok", "stored": enriched}
 
 
 @app.get("/tape")

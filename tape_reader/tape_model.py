@@ -6,8 +6,6 @@ class TapeEvent(BaseModel):
     price: float
     bid_volume: int
     ask_volume: int
-    delta: int
-    imbalance: float
+    delta: int | None = None
+    imbalance: float | None = None
     notes: str | None = None
-
-TAPE_PATH = Path("tape_reader/tape_storage.json")
