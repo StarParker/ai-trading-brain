@@ -53,3 +53,24 @@ def create_signal(signal: Signal):
     STORAGE_PATH.write_text(json.dumps(data, indent=4))
 
     return {"status": "ok", "stored": signal.model_dump(mode="json")}
+
+
+@app.get("/signals")
+def get_signals():
+    raw = STORAGE_PATH.read_text().strip()
+    data = json.loads(raw) if raw else []
+    return data
+
+
+@app.get("/signals/latest")
+def get_latest_signal():
+    raw = STORAGE_PATH.read.text().strip()
+    data = json.loads(raw) if raw else []
+    return data[-1] if data else {}
+
+
+@app.get("/signals/filter")
+def filter_signals_(signal_type: str):
+    raw = STORAGE_PATH.read_text().strip()
+    data = json.loads(raw) if raw else []
+    return [s for s in data if s["signal type"] == signal_type]
