@@ -15,5 +15,19 @@
             "vwap_relation": "below",
             "session": "RTH"
         }
+    },
+    {
+        "timestamp": "2026-06-20T16:42:51.139000Z",
+        "signal_type": "string",
+        "category": "string",
+        "strength": 0,
+        "playbook_tag": "string",
+        "htf_bias": "string",
+        "ltf_context": "string",
+        "trigger": "string",
+        "invalidation": "string",
+        "metadata": {
+            "additionalProp1": {}
+        }
     }
 ]

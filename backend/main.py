@@ -2,6 +2,8 @@
 from fastapi import FastAPI
 from diary.diary_model import DiaryEntry, load_entries, save_entries
 from signals.signal_model import Signal, STORAGE_PATH
+from tape_reader.tape_model import TapeEvent
+from pathlib import Path
 import json
 
 
@@ -64,9 +66,15 @@ def get_signals():
 
 @app.get("/signals/latest")
 def get_latest_signal():
-    raw = STORAGE_PATH.read.text().strip()
-    data = json.loads(raw) if raw else []
-    return data[-1] if data else {}
+    raw = STORAGE_PATH.read_text().strip()
+    if not raw:
+        return {}
+    
+    data = json.loads(raw)
+    if not data:
+        return {}
+    
+    return data[-1]
 
 
 @app.get("/signals/filter")
@@ -74,3 +82,21 @@ def filter_signals_(signal_type: str):
     raw = STORAGE_PATH.read_text().strip()
     data = json.loads(raw) if raw else []
     return [s for s in data if s["signal type"] == signal_type]
+
+
+@app.post("/tape")
+def add_tape_event(event: TapeEvent):
+    raw = TAPE_PATH.read_text().strip() if TAPE_PATH.exists() else "[]"
+    data = json.loads(raw)
+    data.append(event.dict())
+    TAPE_PATH.write_text(json,.dumps(data, indent=2))return {"status": "ok", "stored": event}
+
+
+@app.get("/tape")
+def get_tape_events():
+    if not TAPE_PATH.exists():
+        return []
+    raw = TAPE_PATH.read_text().strip()
+    if not raw:
+        return []
+    return json.loads(raw)
