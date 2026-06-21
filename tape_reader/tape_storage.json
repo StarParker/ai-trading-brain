@@ -97,5 +97,110 @@
     "delta": -60,
     "imbalance": -0.5,
     "notes": "string"
+  },
+  {
+    "timestamp": "2026-06-20T20:41:36.175000Z",
+    "price": 3450.0,
+    "bid_volume": 90,
+    "ask_volume": 30,
+    "delta": -60,
+    "imbalance": -0.5,
+    "notes": "string"
+  },
+  {
+    "timestamp": "2024-01-01T12:00:00.123456",
+    "symbol": "ES",
+    "price": 5320.25,
+    "last_trade_size": 10.0,
+    "aggressor": "sell",
+    "bid_volume": 150.0,
+    "ask_volume": 80.0,
+    "delta": -70.0,
+    "imbalance": -0.30434782608695654,
+    "bid_depth": [
+      120.0,
+      95.0,
+      80.0,
+      60.0,
+      40.0
+    ],
+    "ask_depth": [
+      110.0,
+      100.0,
+      85.0,
+      70.0,
+      50.0
+    ],
+    "sweep_flag": false,
+    "iceberg_flag": false,
+    "liquidity_pull": {
+      "bid": 0.0,
+      "ask": 0.0
+    },
+    "liquidity_add": {
+      "bid": 0.0,
+      "ask": 0.0
+    },
+    "footprint_bid": {
+      "volume": 150.0,
+      "delta": -120.0,
+      "imbalance": -45.0
+    },
+    "footprint_ask": {
+      "volume": 80.0,
+      "delta": 120.0,
+      "imbalance": 35.0
+    },
+    "session": "RTH",
+    "level_tag": null,
+    "notes": null
+  },
+  {
+    "timestamp": "2024-01-01T12:00:00.123456",
+    "symbol": "ES",
+    "price": 5320.25,
+    "last_trade_size": 10.0,
+    "aggressor": "sell",
+    "bid_volume": 150.0,
+    "ask_volume": 80.0,
+    "delta": -70.0,
+    "imbalance": -0.30434782608695654,
+    "bid_depth": [
+      120.0,
+      95.0,
+      80.0,
+      60.0,
+      40.0
+    ],
+    "ask_depth": [
+      110.0,
+      100.0,
+      85.0,
+      70.0,
+      50.0
+    ],
+    "sweep_flag": false,
+    "iceberg_flag": false,
+    "liquidity_pull": {
+      "bid": 0.0,
+      "ask": 0.0
+    },
+    "liquidity_add": {
+      "bid": 0.0,
+      "ask": 0.0
+    },
+    "footprint_bid": {
+      "volume": 150.0,
+      "delta": -120.0,
+      "imbalance": -45.0
+    },
+    "footprint_ask": {
+      "volume": 80.0,
+      "delta": 120.0,
+      "imbalance": 35.0
+    },
+    "session": "RTH",
+    "level_tag": null,
+    "notes": null
   }
 ]

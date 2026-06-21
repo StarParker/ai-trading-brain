@@ -2,21 +2,22 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, WebSocket, WebSock
 from fastapi.responses import JSONResponse
 from pathlib import Path
 import json
+from datetime import datetime
 
+# Import updated models
 from signals.signal_model import Signal
 from tape_reader.tape_model import TapeEvent
 from diary.diary_model import DiaryEntry
 from diary.diary_storage import load_entries, save_entries
-
 
 app = FastAPI()
 
 STORAGE_PATH = Path("signals/signal_storage.json")
 TAPE_PATH = Path("tape_reader/tape_storage.json")
 
-# ---------------------------
-# Root + Health
-# ---------------------------
+# ============================================================
+# ROOT + HEALTH
+# ============================================================
 
 @app.get("/")
 def root():
@@ -32,9 +33,9 @@ def health():
         }
     }
 
-# ---------------------------
-# Diary Endpoints
-# ---------------------------
+# ============================================================
+# DIARY ENDPOINTS
+# ============================================================
 
 @app.post("/diary")
 def create_diary_entry(entry: DiaryEntry):
@@ -48,9 +49,9 @@ def create_diary_entry(entry: DiaryEntry):
 def get_diary_entries():
     return load_entries()
 
-# ---------------------------
-# Signals Endpoints
-# ---------------------------
+# ============================================================
+# SIGNAL ENDPOINTS
+# ============================================================
 
 @app.post("/signals")
 def create_signal(signal: Signal):
@@ -61,7 +62,6 @@ def create_signal(signal: Signal):
         else:
             data = []
     except Exception:
-        # Reset corrupted file
         data = []
         STORAGE_PATH.write_text("[]")
 
@@ -97,23 +97,23 @@ def filter_signals_(signal_type: str):
     data = json.loads(raw) if raw else []
     return [s for s in data if s.get("signal type") == signal_type]
 
-# ---------------------------
-# Tape Logic
-# ---------------------------
+# ============================================================
+# TAPE LOGIC HELPERS
+# ============================================================
 
-def compute_delta(bid_volume: int, ask_volume: int) -> int:
+def compute_delta(bid_volume: float, ask_volume: float) -> float:
     return ask_volume - bid_volume
 
 
-def compute_imbalance(bid_volume: int, ask_volume: int) -> float:
+def compute_imbalance(bid_volume: float, ask_volume: float) -> float:
     total = bid_volume + ask_volume
     if total == 0:
         return 0.0
     return (ask_volume - bid_volume) / total
 
-# ---------------------------
-# WebSocket Tape Streaming
-# ---------------------------
+# ============================================================
+# WEBSOCKET TAPE STREAMING
+# ============================================================
 
 active_tape_connections: list[WebSocket] = []
 
@@ -124,39 +124,50 @@ async def tape_websocket(websocket: WebSocket):
     active_tape_connections.append(websocket)
 
     try:
-        # Keep the connection alive; we don't expect messages from client,
-        # but receive_text() prevents the loop from exiting immediately.
         while True:
-            await websocket.receive_text()
+            await websocket.receive_text()  # keep alive
     except WebSocketDisconnect:
         if websocket in active_tape_connections:
             active_tape_connections.remove(websocket)
 
-# ---------------------------
-# Tape Endpoints
-# ---------------------------
+# ============================================================
+# TAPE INGESTION + BROADCAST
+# ============================================================
 
 @app.post("/tape")
 async def add_tape_event(event: TapeEvent):
-    delta = compute_delta(event.bid_volume, event.ask_volume)
-    imbalance = compute_imbalance(event.bid_volume, event.ask_volume)
+    """
+    Accepts a full microstructure tape event and enriches it with
+    computed delta/imbalance if missing. Stores + broadcasts it.
+    """
 
     enriched = event.model_dump(mode="json")
-    enriched["delta"] = delta
-    enriched["imbalance"] = imbalance
 
+    # Compute delta if missing
+    if enriched.get("delta") is None:
+        enriched["delta"] = compute_delta(
+            enriched["bid_volume"],
+            enriched["ask_volume"]
+        )
+
+    # Compute imbalance if missing
+    if enriched.get("imbalance") is None:
+        enriched["imbalance"] = compute_imbalance(
+            enriched["bid_volume"],
+            enriched["ask_volume"]
+        )
+
+    # Store locally
     raw = TAPE_PATH.read_text().strip() if TAPE_PATH.exists() else "[]"
     data = json.loads(raw)
     data.append(enriched)
-
     TAPE_PATH.write_text(json.dumps(data, indent=2))
 
-    # Broadcast to all connected WebSocket clients
+    # Broadcast to all WebSocket clients (MotiveWave)
     for conn in list(active_tape_connections):
         try:
             await conn.send_json(enriched)
         except Exception:
-            # Drop dead/broken connections silently
             if conn in active_tape_connections:
                 active_tape_connections.remove(conn)
 
@@ -184,4 +195,3 @@ def get_latest_tape_event():
     if not data:
         return {}
     return data[-1]
-
